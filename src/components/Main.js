@@ -58,8 +58,8 @@ var ImgFigure = React.createClass({
 
     //如果图片的旋转角度有值并且不为0，添加旋转角度
     if (this.props.arrange.rotate) {
-      (['-moz-', '-ms-', '-webkit-', '']).forEach(function(value) {
-         styleObj[value + 'transform'] = 'rotate(' + this.props.arrange.rotate + 'deg)';
+      (['MozTransform', 'msTransform', 'WebkitTransform', 'transform']).forEach(function(value) {
+         styleObj[value] = 'rotate(' + this.props.arrange.rotate + 'deg)';
       }.bind(this));
     }
 
@@ -83,7 +83,39 @@ var ImgFigure = React.createClass({
       </figure>
     )
   }
-})
+});
+
+//控制组件
+var ControllerUnit = React.createClass({
+  handleClick: function(e) {
+    //debugger;
+    //如果点击的是当前正在选中态的按钮，则翻转图片，否则将对应的图片居中
+    if (this.props.arrange.isCenter) {
+      this.props.inverse();
+    } else {
+      this.props.center();
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
+  },
+  render: function() {
+    var controllerUnitClassName = "controller-unit";
+
+    //如果对应的是居中的图片，显示控制按钮的居中态
+    if (this.props.arrange.isCenter) {
+      controllerUnitClassName += ' is-center';
+
+      //如果同时对应的是翻转图片，显示控制按钮的翻转态
+      if (this.props.arrange.isInverse) {
+        controllerUnitClassName += ' is-inverse';
+      }
+    }
+    return (
+      <span className={controllerUnitClassName} onClick={this.handleClick}></span>
+    )
+  }
+});
 
 var AppComponent = React.createClass({
   Constant: {
@@ -137,7 +169,7 @@ var AppComponent = React.createClass({
     var vPosRangeX = vPosRange.x;
 
     var imgsArrangeTopArr = []; //用来存储上测区域的图片状态信息
-    var topImgNum = Math.ceil(Math.random() * 2); //取一个或者不取
+    var topImgNum = Math.floor(Math.random() * 2); //取一个或者不取
     var topImgSpliceIndex = 0; //用来标记布局在上测区域的图片在数组对象中的位置
 
     var imgsArrangeCenterArr = imgsArrangeArr.splice(centerIndex, 1); //用来存放居中图片的状态信息, 一张图片
@@ -278,7 +310,9 @@ var AppComponent = React.createClass({
           isCenter: false
         };
       }
-      imgFigures.push(<ImgFigure data={value} ref={'imgFigure' + index} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} center={this.center(index)}/>)
+      imgFigures.push(<ImgFigure key={index} data={value} ref={'imgFigure' + index} arrange={this.state.imgsArrangeArr[index]} inverse={this.inverse(index)} center={this.center(index)}/>)
+
+      controllerUnits.push(<ControllerUnit key={index} arrange={this.state.imgsArrangeArr[index]} center={this.center(index)} inverse={this.inverse(index)}/>);
     }.bind(this));
     return (
       <section className="stage" ref="stage">
